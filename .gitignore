@@ -1,0 +1,11 @@
+node_modules/
+db/*
+dist/
+
+credentials.js
+.env
+package-lock.json
+
+test.js
+index.js
+orders.*

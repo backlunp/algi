@@ -1,0 +1,8 @@
+[
+  {
+    "symbol": "GSAT",
+    "orderType": "market",
+    "quantity": 1,
+    "orderSide": "buy"
+  }
+]
