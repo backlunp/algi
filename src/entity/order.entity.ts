@@ -1,4 +1,4 @@
-import { Entity, Column } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 
 export enum OrderType {
   market = "market",
@@ -12,6 +12,9 @@ export enum OrderSide {
 
 @Entity()
 export class Order {
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
   @Column()
   symbol: string;
 

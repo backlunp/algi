@@ -42,6 +42,7 @@ export class StrategyManager {
 
   async init() {
     await this.broker.init();
+    await this.orderDb.init();
   }
 
   async refreshStrategyStats() {

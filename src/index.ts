@@ -1,4 +1,5 @@
 import { StrategyManager, Configuration, Brokerage } from "./strategy-manager";
+import "reflect-metadata";
 import { RobinhoodAPI } from "./brokers";
 import { Order } from "./entity/order.entity";
 import { OpenPosition } from "./db";
