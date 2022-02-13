@@ -1,6 +1,12 @@
 import fs from "fs";
-import { Connection, createConnection, getRepository } from "typeorm";
+import {
+  Connection,
+  createConnection,
+  getConnection,
+  getRepository,
+} from "typeorm";
 import { Order, OrderSide } from "../entity/order.entity";
+import { Strategy } from "../entity/strategy.entity";
 
 export interface OpenPosition {
   symbol: string;
@@ -16,35 +22,40 @@ wouldn't impact the long term gain from that security.
 */
 
 export class OrderDataBase {
-  strategyId: string;
+  // strategyId: Strategy;
   orderFile: string;
   _connection: any;
   _orderRepository: any;
 
-  constructor(strategyId: string) {
-    this.strategyId = strategyId;
-    this.orderFile = `./db/${this.strategyId}-orders.json`;
+  constructor(strategy: Strategy) {
+    // this.strategyId = strategy;
+    // this.orderFile = `./db/${this.strategyId}-orders.json`;
   }
 
   async init() {
-    await createConnection();
+    console.log("initiating db");
+    // If we don't have an active connection, create one
+    try {
+      getConnection();
+    } catch (err) {
+      await createConnection();
+    }
     this._orderRepository = getRepository(Order);
   }
 
   getAllOrders() {
-    let fileContents: string = fs.readFileSync(this.orderFile, "utf-8");
-    //console.log("file contents", fileContents);
-    let allOrders: Order[] = fileContents ? JSON.parse(fileContents) : [];
-    return allOrders;
+    return this._orderRepository.find();
   }
 
   async writeOrders(orders: Order[]) {
+    console.log("writing orders");
     await this._orderRepository.save(orders);
+    return;
   }
 
   findOrdersBySymbol(symbol: string) {
-    let allOrders: Order[] = this.getAllOrders();
-    return allOrders.filter((order) => order.symbol == symbol);
+    console.log("Finding: " + symbol);
+    return this._orderRepository.find({ symbol: symbol });
   }
 
   calculateNonZeroPositions() {

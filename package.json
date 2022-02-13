@@ -7,7 +7,7 @@
     "start": "node ./index.js",
     "dev": "tsc && node ./dist/index.js",
     "test": "tsc && node ./dist/test.js",
-    "watch": "ode ./dist/index.js"
+    "watch": "node ./dist/index.js"
   },
   "keywords": [],
   "author": "",

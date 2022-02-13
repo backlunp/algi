@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  ManyToOne,
+} from "typeorm";
+import { Strategy } from "./strategy.entity";
 
 export enum OrderType {
   market = "market",
@@ -34,15 +41,18 @@ export class Order {
   @Column()
   quantity: number;
 
-  @Column()
+  @Column({ nullable: true })
   price?: string;
 
-  @Column()
+  @Column({ type: "timestamp", nullable: true })
   timestamp?: Date;
 
-  @Column()
+  @Column({ nullable: true })
   averageExecutedPrice?: string;
 
-  @Column()
+  @Column({ nullable: true })
   executedNotional?: string;
+
+  @ManyToOne((type) => Strategy, (strategy) => strategy.orders)
+  strategy: string;
 }

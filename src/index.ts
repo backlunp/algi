@@ -7,7 +7,7 @@ import { OpenPosition } from "./db";
 import fs from "fs";
 
 let config: Configuration = {
-  strategyId: "first-strat",
+  strategyName: "first-strat",
   brokerage: RobinhoodAPI,
 };
 
@@ -32,7 +32,7 @@ async function execute() {
   const openPositions: OpenPosition[] =
     await strategyManager.allOpenPositions();
 
-  console.table(openPositions);
+  console.log(openPositions);
 
   const strategyValue = "";
 }

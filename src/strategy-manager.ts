@@ -1,8 +1,10 @@
 // let RobinhoodAPI = require("./broker");
 import { RobinhoodAPI } from "./brokers";
 import { Order } from "./entity/order.entity";
+import { Strategy } from "./entity/strategy.entity";
 import { OrderDataBase, OpenPosition } from "./db";
 import fs from "fs";
+import { createConnection, getRepository, Repository } from "typeorm";
 /**
  * @description
  * Defines a new strategy manager. This will act as the wrapper around the broker
@@ -22,27 +24,52 @@ export interface Position {
 
 // defines our strategies configuration information
 export interface Configuration {
-  strategyId: string;
+  strategyId?: string;
+  strategyName: string;
   brokerage: any;
 }
 
 export class StrategyManager {
   strategyId: string;
+  strategyName: string;
   broker: any;
   orderDb: OrderDataBase;
   openPositions: Position[];
   strategyPositionValue: number;
   strategyCashValue: number;
+  private _strategy: Strategy;
+  private _strategyRepository: any;
 
   constructor(config: Configuration) {
-    this.strategyId = config.strategyId;
+    this.strategyName = config.strategyName;
     this.broker = new config.brokerage();
-    this.orderDb = new OrderDataBase(config.strategyId);
   }
 
   async init() {
+    await createConnection();
     await this.broker.init();
+    this._strategyRepository = getRepository(Strategy);
+    this._strategy = await this.fetchStrategyEntity();
+
+    this.orderDb = new OrderDataBase(this._strategy);
     await this.orderDb.init();
+  }
+
+  async fetchStrategyEntity() {
+    // Get our strategy entity from storage or create
+    const strategy: Strategy | undefined =
+      await this._strategyRepository.findOne({
+        id: this.strategyName,
+      });
+    if (strategy != undefined) return strategy;
+
+    const newStrategy: Strategy = {
+      displayName: this.strategyName,
+    };
+
+    // Create a new one
+    await this._strategyRepository.save(newStrategy);
+    return newStrategy;
   }
 
   async refreshStrategyStats() {
@@ -64,14 +91,14 @@ export class StrategyManager {
     );
 
     console.log("Settled Orders");
-    console.table(settledOrders);
+    console.log(settledOrders);
 
     let successfulOrderPromises = settledOrders.filter(
       (res) => res.status === "fulfilled"
     ) as PromiseFulfilledResult<any>[];
 
     console.log("Successful Orders");
-    console.table(successfulOrderPromises);
+    console.log(successfulOrderPromises);
 
     let successfulOrders: Order[] = successfulOrderPromises.map(
       (order) => order.value

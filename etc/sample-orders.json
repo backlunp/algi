@@ -2,7 +2,32 @@
   {
     "symbol": "GSAT",
     "orderType": "market",
-    "quantity": 1,
+    "quantity": 3,
+    "orderSide": "buy"
+  },
+
+  {
+    "symbol": "VOO",
+    "orderType": "market",
+    "quantity": 2,
+    "orderSide": "sell"
+  },
+  {
+    "symbol": "SPY",
+    "orderType": "market",
+    "quantity": 3,
+    "orderSide": "sell"
+  },
+  {
+    "symbol": "MSFT",
+    "orderType": "market",
+    "quantity": 3,
+    "orderSide": "sell"
+  },
+  {
+    "symbol": "MSFT",
+    "orderType": "market",
+    "quantity": 8,
     "orderSide": "buy"
   }
 ]
