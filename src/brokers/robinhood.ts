@@ -4,6 +4,8 @@ const fetch = require("node-fetch");
 import { Order, OrderSide, OrderType } from "../entity/order.entity";
 import { CONFIG } from "../config";
 import { delay } from "../common";
+import { IBroker } from ".";
+import { User } from "../entity/user.entity";
 
 interface RobinhoodOrderResponse {
   id: string;
@@ -41,9 +43,10 @@ export class RobinhoodAPI {
     console.log("creating new Robinhood API");
   }
 
-  async init() {
+  async init(user: User) {
     this.robinhood = await this.getCreds().catch(console.error);
     console.log("Successfully signed in to RobinHood");
+    return true;
   }
 
   getCreds() {
@@ -75,6 +78,7 @@ export class RobinhoodAPI {
         } else {
           //console.log("positions");
           //console.log(body);
+          // let positions: Position[] = body.results
           resolve(body.results);
         }
       });

@@ -11,7 +11,9 @@ services:
     volumes:
       - algi_db:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: insecurepassword # We're keeping this local so no real need to change it
+      # We're keeping this local so low risk profile, otherwise move it to docker secret or .env
+      # Also update in ormconfig
+      MYSQL_ROOT_PASSWORD: insecurepassword
       MYSQL_DATABASE: algi
 
   adminer:

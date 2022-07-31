@@ -6,6 +6,7 @@ import {
   ManyToOne,
 } from "typeorm";
 import { Strategy } from "./strategy.entity";
+import { SupportedBroker } from "./supported-broker.entity";
 
 export enum OrderType {
   market = "market",
@@ -52,6 +53,9 @@ export class Order {
 
   @Column({ nullable: true })
   executedNotional?: string;
+
+  @ManyToOne(() => SupportedBroker, (supportedBroker) => supportedBroker.orders)
+  supportedBroker: SupportedBroker;
 
   @ManyToOne((type) => Strategy, (strategy) => strategy.orders)
   strategy: string;

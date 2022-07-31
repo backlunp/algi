@@ -2,7 +2,7 @@
 import { RobinhoodAPI } from "./brokers";
 import { Order } from "./entity/order.entity";
 import { Strategy } from "./entity/strategy.entity";
-import { OrderDataBase, OpenPosition } from "./db";
+import { OrderDataBase, OpenPosition } from "./datastore";
 import fs from "fs";
 import { createConnection, getRepository, Repository } from "typeorm";
 /**
@@ -38,38 +38,28 @@ export class StrategyManager {
   strategyPositionValue: number;
   strategyCashValue: number;
   private _strategy: Strategy;
-  private _strategyRepository: any;
 
-  constructor(config: Configuration) {
-    this.strategyName = config.strategyName;
-    this.broker = new config.brokerage();
+  constructor(strategy: Strategy) {
+    this._strategy = strategy;
+    this.strategyName = strategy.displayName;
+    this.broker = strategy.supportedBroker;
   }
 
   async init() {
+    // Create our ORM Connection
+    console.log("Creating ORM Connection");
     await createConnection();
+    // Initialize our broker
+    console.log("Initializing Broker");
     await this.broker.init();
-    this._strategyRepository = getRepository(Strategy);
-    this._strategy = await this.fetchStrategyEntity();
 
+    // Set our internal private variables
+    console.log("Private variables");
+
+    console.log("Database connection");
+    // Initialize our DB
     this.orderDb = new OrderDataBase(this._strategy);
-    await this.orderDb.init();
-  }
-
-  async fetchStrategyEntity() {
-    // Get our strategy entity from storage or create
-    const strategy: Strategy | undefined =
-      await this._strategyRepository.findOne({
-        id: this.strategyName,
-      });
-    if (strategy != undefined) return strategy;
-
-    const newStrategy: Strategy = {
-      displayName: this.strategyName,
-    };
-
-    // Create a new one
-    await this._strategyRepository.save(newStrategy);
-    return newStrategy;
+    await this.orderDb.init(this._strategy);
   }
 
   async refreshStrategyStats() {
@@ -120,7 +110,7 @@ export class StrategyManager {
     // console.log(this.orderDb.calculateNonZeroPositions());
 
     const openPositions: OpenPosition[] =
-      await this.orderDb.calculateNonZeroPositions();
+      await this.orderDb.calculateNonZeroPositions(this._strategy);
 
     // Get the current value of our open positions
     const settledPositionsPromises = await Promise.allSettled(
@@ -143,7 +133,6 @@ export class StrategyManager {
       successfulPositionsPromiseResults.map((position) => position.value);
 
     return successfullPositions;
-    // Confirm with broker
   }
 
   async sumPositionValue(positions: Position[]) {
