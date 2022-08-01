@@ -1,19 +1,21 @@
 // let RobinhoodAPI = require("./broker");
-import { RobinhoodAPI } from "./brokers";
+import { IBroker, RegisteredBrokers, RobinhoodAPI } from "./brokers";
 import { Order } from "./entity/order.entity";
 import { Strategy } from "./entity/strategy.entity";
 import { OrderDataBase, OpenPosition } from "./datastore";
 import fs from "fs";
-import { createConnection, getRepository, Repository } from "typeorm";
+import { Repository } from "typeorm";
+import { SupportedBroker } from "./entity/supported-broker.entity";
+import { User } from "./entity/user.entity";
 /**
  * @description
  * Defines a new strategy manager. This will act as the wrapper around the broker
  * as well as the database layer.
  */
 
-export enum Brokerage {
-  robinhood = "robinhood",
-}
+// export enum Brokerage {
+//   robinhood = "robinhood",
+// }
 
 export interface Position {
   symbol: string;
@@ -23,34 +25,43 @@ export interface Position {
 }
 
 // defines our strategies configuration information
-export interface Configuration {
-  strategyId?: string;
-  strategyName: string;
-  brokerage: any;
-}
+// export interface Configuration {
+//   strategyId?: string;
+//   strategyName: string;
+//   brokerage: any;
+// }
 
 export class StrategyManager {
   strategyId: string;
   strategyName: string;
-  broker: any;
+  broker: IBroker;
+  user: User;
   orderDb: OrderDataBase;
   openPositions: Position[];
   strategyPositionValue: number;
   strategyCashValue: number;
+  supportedBroker: SupportedBroker;
   private _strategy: Strategy;
 
   constructor(strategy: Strategy) {
     this._strategy = strategy;
     this.strategyName = strategy.displayName;
-    this.broker = strategy.supportedBroker;
+    this.supportedBroker = strategy.supportedBroker;
   }
 
   async init() {
     // Create our ORM Connection
-    console.log("Creating ORM Connection");
-    await createConnection();
+    console.log("strategy", this._strategy);
+    //await createConnection();
     // Initialize our broker
-    console.log("Initializing Broker");
+    console.log("Initializing Broker", this.supportedBroker);
+    try {
+      let BrokerClass = RegisteredBrokers[this.supportedBroker.className];
+      this.broker = new BrokerClass(this._strategy.user);
+    } catch (err) {
+      console.error(err);
+      return err;
+    }
     await this.broker.init();
 
     // Set our internal private variables
@@ -59,7 +70,7 @@ export class StrategyManager {
     console.log("Database connection");
     // Initialize our DB
     this.orderDb = new OrderDataBase(this._strategy);
-    await this.orderDb.init(this._strategy);
+    await this.orderDb.init();
   }
 
   async refreshStrategyStats() {
@@ -100,7 +111,7 @@ export class StrategyManager {
     //console.log(this.orderDb.findOrdersBySymbol("SOXL"));
   }
 
-  async getQuote(symbol: String) {
+  async getQuote(symbol: string) {
     const price = await this.broker.getPrice(symbol);
     return price;
   }

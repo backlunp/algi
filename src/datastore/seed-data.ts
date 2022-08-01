@@ -1,15 +1,16 @@
-import { getRepository } from "typeorm";
-import { AlpacaAPI } from "../brokers";
+import { AlpacaAPI, RegisteredBroker } from "../brokers";
+import { AppDataSource } from "../data-source";
 import { Strategy } from "../entity/strategy.entity";
 import { SupportedBroker } from "../entity/supported-broker.entity";
 import { User } from "../entity/user.entity";
 
 export async function registerUsers() {
+  console.log("Registering Users");
   let user = {
     userName: "peter",
   };
-  const userRepository = getRepository(User);
-  const userExists = await userRepository.findOne(user);
+  const userRepository = AppDataSource.getRepository(User);
+  const userExists = await userRepository.findOneBy(user);
   if (userExists) {
     return;
   }
@@ -18,16 +19,17 @@ export async function registerUsers() {
 }
 
 export async function registerBrokers() {
+  console.log("Registering Brokers");
   let brokers = [
     {
       displayName: "Alpaca",
-      className: "AlpacaAPI",
+      className: "AlpacaAPI" as RegisteredBroker,
     },
   ];
 
   await brokers.forEach(async (broker) => {
-    let repository = getRepository(SupportedBroker);
-    const itemExists = await repository.findOne({
+    let repository = AppDataSource.getRepository(SupportedBroker);
+    const itemExists = await repository.findOneBy({
       displayName: broker.displayName,
     });
     if (itemExists) {
@@ -40,8 +42,11 @@ export async function registerBrokers() {
 
 // Quick and dirty, register all strategies in the DB
 export async function registerStrategies() {
-  let curUser = await getRepository(User).findOne();
-  let alpaca = await getRepository(SupportedBroker).findOne({
+  console.log("Registering Strategies");
+  let curUser = await AppDataSource.getRepository(User).findOneBy({
+    userName: "peter",
+  });
+  let alpaca = await AppDataSource.getRepository(SupportedBroker).findOneBy({
     displayName: "Alpaca",
   });
 
@@ -58,19 +63,17 @@ export async function registerStrategies() {
     },
   ];
 
-  let strategyRepository = getRepository(Strategy);
+  let strategyRepository = AppDataSource.getRepository(Strategy);
 
-  strategies.forEach(async (strategyToCheck) => {
+  strategies.forEach(async (strategy) => {
     // Get our strategy entity from storage or create
-    const strategy: Strategy | undefined = await strategyRepository.findOne({
-      displayName: strategyToCheck.displayName,
+    const extantStrategy: Strategy | null = await strategyRepository.findOneBy({
+      displayName: strategy.displayName,
     });
-    if (strategy != undefined) return strategy;
-
-    const newStrategy: Strategy = strategyToCheck;
+    if (extantStrategy) return extantStrategy;
 
     // Create a new one
-    await strategyRepository.save(newStrategy);
-    return newStrategy;
+    await strategyRepository.save(strategy);
+    return strategy;
   });
 }

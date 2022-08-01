@@ -1,19 +1,7 @@
-import fs from "fs";
-import {
-  Connection,
-  createConnection,
-  getConnection,
-  getRepository,
-} from "typeorm";
+import { OpenPosition } from ".";
+import { AppDataSource } from "../data-source";
 import { Order, OrderSide } from "../entity/order.entity";
 import { Strategy } from "../entity/strategy.entity";
-
-export interface OpenPosition {
-  symbol: string;
-  quantity: number;
-  currentPrice?: number;
-  value?: number;
-}
 
 /*
 TODO: Order Stack: for each security, we should calculate the accrual based
@@ -30,22 +18,16 @@ export class OrderDataBase {
 
   constructor(strategy: Strategy) {
     this._strategy = strategy;
+    this._orderRepository = AppDataSource.getRepository(Order);
     // this.orderFile = `./db/${this.strategyId}-orders.json`;
   }
 
-  async init(strategy: Strategy) {
+  async init() {
     console.log("initiating db");
-    // If we don't have an active connection, create one
-    try {
-      getConnection();
-    } catch (err) {
-      await createConnection();
-    }
-    this._orderRepository = getRepository(Order);
     // this._strategy = strategy;
   }
 
-  getAllOrders(strategy: Strategy | null = null) {
+  getAllOrders() {
     return this._orderRepository.find({ strategy: this._strategy });
   }
 
@@ -64,7 +46,7 @@ export class OrderDataBase {
 
   calculateNonZeroPositions(strategy: Strategy | null = null) {
     console.log("Finding nonzero orders");
-    let allOrders: Order[] = this.getAllOrders(strategy);
+    let allOrders: Order[] = this.getAllOrders();
 
     let ordersSymbolMap: { [key: string]: Order[] } = {};
     console.log(allOrders);

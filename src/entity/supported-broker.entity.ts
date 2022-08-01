@@ -5,21 +5,22 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  JoinColumn,
 } from "typeorm";
-import { IBroker } from "../brokers";
+import { IBroker, RegisteredBroker } from "../brokers";
 import { Order } from "./order.entity";
 import { Strategy } from "./strategy.entity";
 
 @Entity()
 export class SupportedBroker {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   displayName: string;
 
   @Column()
-  className: string;
+  className: RegisteredBroker;
 
   @OneToMany(() => Strategy, (strategy) => strategy.supportedBroker)
   strategies: Strategy[];

@@ -1,5 +1,7 @@
 version: "3.7"
 
+# Change credentials or use env, this is just a sample
+
 services:
   postgres:
     image: postgres:12.3
